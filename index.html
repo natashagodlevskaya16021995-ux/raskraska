@@ -157,12 +157,15 @@
   #stage{
     position:relative;
     min-height:0;
-    display:flex;
+    display:grid;
+    grid-template-rows:1fr auto;
+    gap:10px;
     align-items:center;
-    justify-content:center;
+    justify-items:center;
     background:rgba(255,255,255,.12);
     border-radius:var(--radius);
     overflow:hidden;
+    padding:12px;
   }
 
   canvas{
@@ -182,17 +185,16 @@
   }
 
   #tools{
-    position:absolute;
-    left:12px;
-    right:12px;
-    bottom:12px;
+    position:relative;
+    width:100%;
     display:flex;
     justify-content:center;
     align-items:center;
     gap:8px;
     flex-wrap:wrap;
     z-index:9;
-    pointer-events:none;
+    pointer-events:auto;
+    padding:0 4px 2px;
   }
 
   #tools>*{pointer-events:auto}

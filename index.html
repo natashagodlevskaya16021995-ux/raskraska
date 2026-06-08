@@ -19,7 +19,7 @@
     --button-text: #2f241d;
   }
 
-  *{box-sizing:border-box}
+  *{ box-sizing:border-box; }
 
   html,body{
     margin:0;
@@ -32,15 +32,13 @@
     user-select:none;
   }
 
-  body{
-    background:var(--bg);
-  }
+  body{ background:var(--bg); }
 
   #app{
     width:100vw;
     height:100vh;
     display:grid;
-    grid-template-rows:auto 1fr;
+    grid-template-rows:auto minmax(0,1fr);
     gap:10px;
     padding:12px;
   }
@@ -76,8 +74,8 @@
     background:#ddd;
   }
 
-  .dot.done{background:#55c96b}
-  .dot.current{background:var(--accent)}
+  .dot.done{ background:#55c96b; }
+  .dot.current{ background:var(--accent); }
 
   #title{
     font-size:clamp(20px, 3vw, 34px);
@@ -150,25 +148,35 @@
     font-weight:900;
   }
 
-  .good{color:#268c2d}
-  .bad{color:#d62828}
-  .info{color:#126da3}
+  .good{ color:#268c2d; }
+  .bad{ color:#d62828; }
+  .info{ color:#126da3; }
 
+  /* Главная зона: картинка и панель инструментов разделены физически */
   #stage{
-    position:relative;
     min-height:0;
     display:grid;
-    grid-template-rows:1fr auto;
+    grid-template-rows:minmax(0,1fr) auto;
     gap:10px;
-    align-items:center;
-    justify-items:center;
     background:rgba(255,255,255,.12);
     border-radius:var(--radius);
     overflow:hidden;
     padding:12px;
   }
 
+  #canvasArea{
+    position:relative;
+    min-height:0;
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+
   canvas{
+    display:block;
     max-width:100%;
     max-height:100%;
     background:#fff;
@@ -187,17 +195,15 @@
   #tools{
     position:relative;
     width:100%;
+    min-height:58px;
     display:flex;
     justify-content:center;
     align-items:center;
     gap:8px;
     flex-wrap:wrap;
     z-index:9;
-    pointer-events:auto;
-    padding:0 4px 2px;
+    padding:0 4px;
   }
-
-  #tools>*{pointer-events:auto}
 
   .toolBox{
     display:flex;
@@ -277,10 +283,9 @@
   }
 
   @keyframes pop{
-    from{opacity:0;transform:translate(-50%,-50%) scale(.7)}
-    to{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    from{opacity:0;transform:translate(-50%,-50%) scale(.7);}
+    to{opacity:1;transform:translate(-50%,-50%) scale(1);}
   }
-
 
   #saveModal{
     position:fixed;
@@ -339,10 +344,12 @@
   }
 
   @media(max-width:650px){
-    #app{padding:8px;gap:8px}
-    #questionPanel{padding:10px}
-    button{padding:9px 12px}
-    .swatch{width:28px;height:28px}
+    #app{padding:8px;gap:8px;}
+    #questionPanel{padding:10px;}
+    #stage{padding:8px;gap:8px;}
+    button{padding:9px 12px;}
+    .swatch{width:28px;height:28px;}
+    #tools{min-height:52px;}
   }
 </style>
 </head>
@@ -357,14 +364,16 @@
   </div>
 
   <div id="stage">
-    <canvas id="canvas"></canvas>
+    <div id="canvasArea">
+      <canvas id="canvas"></canvas>
 
-    <div id="hint">
-      Сначала ответь на вопрос ✨<br>
-      <small>После правильного ответа можно закрасить один элемент.</small>
+      <div id="hint">
+        Сначала ответь на вопрос ✨<br>
+        <small>После правильного ответа можно закрасить один элемент.</small>
+      </div>
+
+      <div id="successPop"></div>
     </div>
-
-    <div id="successPop"></div>
 
     <div id="tools">
       <div class="toolBox">
@@ -380,18 +389,17 @@
   </div>
 </div>
 
-  <div id="saveModal">
-    <div class="saveBox">
-      <h2>Картинка готова</h2>
-      <p>Если скачивание в Genially не началось автоматически, открой картинку в новой вкладке и сохрани её оттуда.</p>
-      <img id="savePreview" alt="Готовая раскраска">
-      <div class="saveActions">
-        <button id="openImageBtn" class="primary">Открыть картинку</button>
-        <button id="closeSaveBtn">Закрыть</button>
-      </div>
+<div id="saveModal">
+  <div class="saveBox">
+    <h2>Картинка готова</h2>
+    <p>Если скачивание в Genially не началось автоматически, открой картинку в новой вкладке и сохрани её оттуда.</p>
+    <img id="savePreview" alt="Готовая раскраска">
+    <div class="saveActions">
+      <button id="openImageBtn" class="primary">Открыть картинку</button>
+      <button id="closeSaveBtn">Закрыть</button>
     </div>
   </div>
-
+</div>
 
 <script>
 const params = new URLSearchParams(window.location.search);
@@ -540,7 +548,6 @@ const saveModal=document.getElementById("saveModal");
 const savePreview=document.getElementById("savePreview");
 const openImageBtn=document.getElementById("openImageBtn");
 const closeSaveBtn=document.getElementById("closeSaveBtn");
-let lastSavedDataUrl="";
 
 let originalImageData=null;
 let history=[];
@@ -550,8 +557,9 @@ let finished=false;
 let selected=new Set();
 let isReady=false;
 let finishPopShown=false;
+let lastSavedDataUrl="";
 
-(CONFIG.palette && CONFIG.palette.length ? CONFIG.palette : DEFAULT_PALETTE).forEach(c=>{
+CONFIG.palette.forEach(c=>{
   const s=document.createElement("div");
   s.className="swatch";
   s.style.background=c;
@@ -987,9 +995,6 @@ function tryDownload(dataUrl){
 saveBtn.onclick=()=>{
   try{
     const dataUrl = canvas.toDataURL("image/png");
-
-    // В обычном браузере скачивание сработает.
-    // В Genially/iframe оно может быть заблокировано, поэтому сразу показываем запасной вариант.
     tryDownload(dataUrl);
 
     setTimeout(()=>{
@@ -1004,6 +1009,7 @@ openImageBtn.onclick=()=>{
   if(!lastSavedDataUrl) return;
 
   const w = window.open("", "_blank");
+
   if(w){
     w.document.write(`
       <!DOCTYPE html>

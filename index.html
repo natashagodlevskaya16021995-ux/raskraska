@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Раскраска с вопросами</title>
+<title>Раскраска с заданиями</title>
 <style>
   :root{
     --font: Arial, sans-serif;
@@ -82,7 +82,7 @@
   }
 
   #task{
-    font-size:clamp(22px, 2.8vw, 38px);
+    font-size:clamp(24px, 3.2vw, 42px);
     font-weight:900;
     line-height:1.25;
     white-space:pre-wrap;
@@ -100,12 +100,12 @@
   button{
     border:0;
     border-radius:18px;
-    padding:14px 22px;
+    padding:15px 22px;
     background:linear-gradient(180deg,#fff,#f1f1f1);
     box-shadow:0 4px 0 rgba(0,0,0,.18);
     font-family:var(--font);
     font-weight:900;
-    font-size:clamp(18px,2.2vw,28px);
+    font-size:clamp(20px,2.3vw,30px);
     color:var(--button-text);
     cursor:pointer;
     transition:.15s;
@@ -133,7 +133,7 @@
     border:2px solid rgba(var(--border),.5);
     border-radius:18px;
     padding:12px 14px;
-    font-size:clamp(20px,2.5vw,30px);
+    font-size:clamp(16px,2vw,22px);
     font-family:var(--font);
     outline:none;
     text-align:center;
@@ -142,7 +142,7 @@
   #feedback{
     min-height:26px;
     margin-top:10px;
-    font-size:clamp(20px,2.5vw,30px);
+    font-size:clamp(16px,2vw,22px);
     font-weight:900;
   }
 
@@ -427,6 +427,37 @@ function parseJsonParam(name, def){
   }
 }
 
+function decodeUtf8Base64Url(str){
+  try{
+    str = String(str || "").replace(/-/g,"+").replace(/_/g,"/");
+    while(str.length % 4) str += "=";
+    const bin = atob(str);
+    const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }catch(e){
+    return "";
+  }
+}
+
+function parseCompactQuestions(def){
+  try{
+    const value = get("qc", "");
+    if(!value) return parseJsonParam("q", def);
+    const arr = JSON.parse(decodeUtf8Base64Url(value));
+    return arr.map((q,i)=>({
+      title:"",
+      text:q[0] || "",
+      answerType:q[1] || "single",
+      variants:(q[2] || []).map(v=>({text:v[0] || "", correct:!!v[1]})),
+      correctText:q[3] || "",
+      caseSensitive:!!q[4]
+    }));
+  }catch(e){
+    return parseJsonParam("q", def);
+  }
+}
+
 const DEFAULT_QUESTIONS = [
   {
     title:"Задание 1",
@@ -490,7 +521,7 @@ const CONFIG = {
   finishImage: get("fin_img", ""),
   imageUrl: get("img", ""),
   freeColorAfterFinish: bool("free", true),
-  questions: parseJsonParam("q", DEFAULT_QUESTIONS)
+  questions: parseCompactQuestions(DEFAULT_QUESTIONS)
 };
 
 function hexToRgbParts(hex){
@@ -601,7 +632,7 @@ function render(){
   feedbackEl.className="";
 
   if(finished){
-    titleEl.textContent="Молодец!";
+    titleEl.textContent="";
     taskEl.textContent=CONFIG.finishText;
     feedbackEl.textContent=CONFIG.freeColorAfterFinish ? "Можно дораскрасить все элементы свободно." : "";
     feedbackEl.className="good";
@@ -617,7 +648,7 @@ function render(){
   }
 
   if(canColorOne){
-    titleEl.textContent="Теперь раскрась";
+    titleEl.textContent="";
     taskEl.textContent="Выбери цвет и закрась один элемент картинки.";
     feedbackEl.textContent=CONFIG.successText;
     feedbackEl.className="good";
@@ -627,7 +658,7 @@ function render(){
 
   const q=CONFIG.questions[current] || DEFAULT_QUESTIONS[0];
 
-  titleEl.textContent=q.title || ("Задание "+(current+1));
+  titleEl.textContent="";
   taskEl.textContent=q.text || "Ответь на вопрос";
 
   if(q.answerType==="text"){

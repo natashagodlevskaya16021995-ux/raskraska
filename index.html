@@ -401,7 +401,10 @@
 </div>
 
 <script>
-const params = new URLSearchParams(window.location.search);
+const rawParams = window.location.hash && window.location.hash.length > 1
+  ? window.location.hash.slice(1)
+  : window.location.search;
+const params = new URLSearchParams(rawParams);
 
 const get = (name, def="") => {
   const v = params.get(name);

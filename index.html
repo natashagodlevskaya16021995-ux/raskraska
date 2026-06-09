@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Раскраска с заданиями — без заголовков заданий</title>
+<title>Раскраска с вопросами</title>
 <style>
   :root{
     --font: Arial, sans-serif;
@@ -48,7 +48,7 @@
     border:var(--border-width) solid rgba(var(--border), var(--border-opacity));
     border-radius:var(--radius);
     box-shadow:0 10px 30px rgba(0,0,0,.13);
-    padding:20px 18px;
+    padding:14px;
     text-align:center;
     backdrop-filter:blur(8px);
     -webkit-backdrop-filter:blur(8px);
@@ -58,7 +58,7 @@
   #progress{
     font-weight:900;
     font-size:14px;
-    margin-bottom:8px;
+    margin-bottom:6px;
     display:flex;
     justify-content:center;
     gap:6px;
@@ -82,31 +82,30 @@
   }
 
   #task{
-    font-size:clamp(22px, 2.8vw, 36px);
+    font-size:clamp(22px, 2.8vw, 38px);
     font-weight:900;
     line-height:1.25;
     white-space:pre-wrap;
-    margin:4px auto 18px;
-    max-width:1050px;
+    margin-bottom:18px;
   }
 
   #answers{
     display:flex;
     justify-content:center;
     align-items:center;
-    gap:14px;
+    gap:10px;
     flex-wrap:wrap;
   }
 
   button{
     border:0;
-    border-radius:20px;
+    border-radius:18px;
     padding:14px 22px;
     background:linear-gradient(180deg,#fff,#f1f1f1);
-    box-shadow:0 5px 0 rgba(0,0,0,.18);
+    box-shadow:0 4px 0 rgba(0,0,0,.18);
     font-family:var(--font);
     font-weight:900;
-    font-size:clamp(17px,2vw,24px);
+    font-size:clamp(18px,2.2vw,28px);
     color:var(--button-text);
     cursor:pointer;
     transition:.15s;
@@ -134,7 +133,7 @@
     border:2px solid rgba(var(--border),.5);
     border-radius:18px;
     padding:12px 14px;
-    font-size:clamp(18px,2.2vw,26px);
+    font-size:clamp(20px,2.5vw,30px);
     font-family:var(--font);
     outline:none;
     text-align:center;
@@ -143,7 +142,7 @@
   #feedback{
     min-height:26px;
     margin-top:10px;
-    font-size:clamp(16px,2vw,22px);
+    font-size:clamp(20px,2.5vw,30px);
     font-weight:900;
   }
 
@@ -344,9 +343,9 @@
 
   @media(max-width:650px){
     #app{padding:8px;gap:8px;}
-    #questionPanel{padding:14px 10px;}
+    #questionPanel{padding:10px;}
     #stage{padding:8px;gap:8px;}
-    button{padding:11px 15px;}
+    button{padding:9px 12px;}
     .swatch{width:28px;height:28px;}
     #tools{min-height:52px;}
   }
@@ -401,10 +400,7 @@
 </div>
 
 <script>
-const rawParams = window.location.hash && window.location.hash.length > 1
-  ? window.location.hash.slice(1)
-  : window.location.search;
-const params = new URLSearchParams(rawParams);
+const params = new URLSearchParams(window.location.search);
 
 const get = (name, def="") => {
   const v = params.get(name);
@@ -605,7 +601,7 @@ function render(){
   feedbackEl.className="";
 
   if(finished){
-    titleEl.textContent="";
+    titleEl.textContent="Молодец!";
     taskEl.textContent=CONFIG.finishText;
     feedbackEl.textContent=CONFIG.freeColorAfterFinish ? "Можно дораскрасить все элементы свободно." : "";
     feedbackEl.className="good";
@@ -621,7 +617,7 @@ function render(){
   }
 
   if(canColorOne){
-    titleEl.textContent="";
+    titleEl.textContent="Теперь раскрась";
     taskEl.textContent="Выбери цвет и закрась один элемент картинки.";
     feedbackEl.textContent=CONFIG.successText;
     feedbackEl.className="good";
@@ -631,7 +627,7 @@ function render(){
 
   const q=CONFIG.questions[current] || DEFAULT_QUESTIONS[0];
 
-  titleEl.textContent="";
+  titleEl.textContent=q.title || ("Задание "+(current+1));
   taskEl.textContent=q.text || "Ответь на вопрос";
 
   if(q.answerType==="text"){
